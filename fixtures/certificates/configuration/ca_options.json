@@ -1,0 +1,12 @@
+{
+  "common"          : "CertifierCA",
+  "serial"          : "01",
+  "country"         : "US",
+  "state"           : "Virginia",
+  "locality"        : "Washington",
+  "organization"    : "CertifierTest",
+  "ou"              : "CertifierTest",
+  "date"            : { "notBefore" : "Sun Jan 08 2012 14:10:17 GMT+0200 (IST)", "notAfter": "Wed Feb 08 2012 14:10:17 GMT+0200 (IST)"},
+  "subject"         : { "type" : 6, "name" : "http://ca.Certifier.org/uberca"},
+  "version"         : "0.0.1"
+}

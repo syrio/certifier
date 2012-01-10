@@ -1,0 +1,12 @@
+{
+  "common"          : "CertifierSampleClient1",
+  "serial"          : "02",
+  "country"         : "US",
+  "state"           : "Virginia",
+  "locality"        : "Blacksburg",
+  "organization"    : "CertifierClientTest",
+  "ou"              : "CertifierClientTest",
+  "date"            : { "notBefore" : "Sun Jan 08 2012 14:10:17 GMT+0200 (IST)", "notAfter": "Wed Feb 08 2012 14:10:17 GMT+0200 (IST)"},
+  "subject"         : { "type" : 6, "name" : "http://sample.Certifier.org/client1"},
+  "version"         : "0.0.1"
+}

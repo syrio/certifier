@@ -1,0 +1,50 @@
+!!!
+html
+  head
+    title Certificate Verifier
+
+    link(rel='stylesheet', href='style.css')
+
+    script(type='text/javascript', src='lib/jquery-1.7.min.js')
+    
+    script(type='text/javascript', src='lib/jquery.ba-jqmq.js')
+    
+    script(type='text/javascript', src='lib/forge.util.js')
+    
+    script(type='text/javascript', src='lib/forge.md5.js')
+    
+    script(type='text/javascript', src='lib/forge.sha1.js')
+    
+    script(type='text/javascript', src='lib/forge.prng.js')
+    
+    script(type='text/javascript', src='lib/forge.aes.js')
+    
+    script(type='text/javascript', src='lib/forge.random.js')
+    
+    script(type='text/javascript', src='lib/forge.oids.js')
+    
+    script(type='text/javascript', src='lib/forge.asn1.js')
+    
+    script(type='text/javascript', src='lib/forge.rsa.js')
+    
+    script(type='text/javascript', src='lib/forge.jsbn.js')
+    
+    script(type='text/javascript', src='lib/forge.pki.js')
+    
+    script(type="text/javascript", src='lib/Iuppiter.js')
+
+    script(type='text/javascript', src='verify.js')
+    
+  
+  div#stage
+  
+    div#playingField.field.centercontents
+      div#playingText
+        h2 Drop a certificate file to verify it against our CA
+      
+      div#fileDetails
+
+      div#verifyResults
+      
+      div#error
+        

@@ -1,0 +1,94 @@
+body {
+  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  -webkit-perspective: 1000px;
+  -moz-perspective: 1000px;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -o-box;
+  display: -ms-box;
+  display: box;
+  -webkit-box-pack: center;
+  -moz-box-pack: center;
+  -o-box-pack: center;
+  box-pack: center;
+  -webkit-box-align: center;
+  -moz-box-align: center;
+  -o-box-align: center;
+  box-align: center;
+}
+
+#stage {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  -webkit-transform-style: preserve-3d;
+  -moz-transform-style: preserve-3d;
+  z-index: 8;
+  width: 1150px;
+  height: 675px;
+}
+
+
+#playingField {
+  
+}
+
+.field {
+  
+  width: 1150px;
+  height: 675px;
+  position: absolute;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border-radius: 40px;
+  background: #E0EFFD;
+  padding: 20px 40px;
+  -webkit-transition: -webkit-transform 0.8s ease-in-out, opacity 1.2s ease-in-out;
+  -moz-transition: -moz-transform 0.8s ease-in-out, opacity 1.2s ease-in-out;
+  box-shadow: 0 3px 15px #000;
+  font: 30px Arial;
+  color: #C63717;
+  -webkit-box-orient: vertical;
+  -moz-box-orient: vertical;
+  -o-box-orient: vertical;
+  box-orient: vertical;
+  padding-top: 30px;
+  overflow: hidden;
+}
+
+#playingText {
+}
+
+#fileDetails {
+  color: #FFAE3B;
+  padding-top: 50px;
+}
+
+#benchResults {
+  color: #3D5C9D;
+  padding-top: 50px;
+}
+
+#error {
+  color: #3D5C9D;
+}
+
+
+.centercontents {
+  display: -webkit-box;
+  display: -moz-box;
+  display: -o-box;
+  display: -ms-box;
+  display: box;
+  -webkit-box-pack: center;
+  -moz-box-pack: center;
+  -o-box-pack: center;
+  box-pack: center;
+  -webkit-box-align: center;
+  -moz-box-align: center;
+  -o-box-align: center;
+  box-align: center;
+}
