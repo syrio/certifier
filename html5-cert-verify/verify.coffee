@@ -54,7 +54,12 @@ class FileHandler
     
     try
       forge.pki.verifyCertificateChain @store, [cert], (verified, depth, chain) ->
-        # verify here 
+        if verified
+          localStorage.first_use_date = new Date()
+          localStorage.last_use_date = new Date()
+          localStorage.not_after = cert.validity.notAfter
+          localStorage.not_before = cert.validity.notBefore
+        
         cb 0, verified
         return true
     catch ex
@@ -93,42 +98,72 @@ class DropHandler
     handler = new FileHandler(file, @cb)
 
 
-class StateManager
+class LicenseManager
   
-  constructor: ->
+  constructor: (cb) ->
     
-    @browserSupportsPrerequisites()
-    @initializeStoredState()
+    try
+     
+      unless @stateExists()
+        return cb {error: 'Cert.State.NotExisting', message: 'Certificate hasnt been aprooved, cannot check license'}
     
+      if @licenseValid()
+        @updateUsage()
+        cb 0, true
+      else
+        console.log "License invalid"
+        cb 0, false
+        
+    catch ex
+      cb ex
+      
+  licenseValid: ->
+    now = new Date()
 
-  browserSupportsPrerequisites: ->
-    #! Change this to use the Modernizr script (modernizr.com)
+    if now < new Date(localStorage.last_use_date) or now < new Date(localStorage.first_use_date) or now < new Date(localStorage.not_before)
+      throw {error: 'Cert.State.DateTempering', message: 'Inconsistency in clocks, user date has been changed to the past'}
+      
+    now < new Date(localStorage.not_after)
   
-    # Check for HTML5 localStorage support
-    unless window.localStorage?
-      throw {error: 'Cert.State.NoBrowserSupport', message: 'Browser doesnt support HTML5 localStorage'}
-
-  initializeStoredState: ->
-
-    if localStorage.first_use_date? and not localStorage.last_use_date?
+  updateUsage: ->
+    now = new Date()    
+    localStorage.last_use_date = now
+    
+  stateExists: ->
+    one_does = localStorage.first_use_date? or localStorage.last_use_date? or localStorage.not_before? or localStorage.not_after?
+    another_doesnt = not localStorage.first_use_date? or not localStorage.last_use_date? or not localStorage.not_before? or not localStorage.not_after?
+    
+    if one_does and another_doesnt
       throw {error: 'Cert.State.MalformedState', message: 'Malformed state: only part of the stored state exists in storage'}
-    else unless localStorage.first_use_date? and localStorage.last_use_date?
-      localStorage.first_use_date = new Date()
-      localStorage.last_use_date = new Date()
-    else if localStorage.first_use_date? and localStorage.last_use_date?
-      localStorage.last_use_date = new Date()
+      
+    if another_doesnt
+      # there's no state, initialize it
+      return false
+    else  
+      return true
   
+        
+    
 
 window.onload = ->
   
+  browserSupportsPrerequisites = ->
+    #! Change this to use the Modernizr script (modernizr.com)
+    # Check for HTML5 localStorage support
+    window.localStorage?
+  
+  verifyUsage = (cb) ->
+    license_manager = new LicenseManager cb
+  
   verifyCerificate = (element, cb) ->  
-    try
-      state_manager = new StateManager
-    catch ex
-      cb ex
-    
     new DropHandler element, cb
 
+  unless browserSupportsPrerequisites()
+    $('#error').text "Cannot work on this browser"
+  
+  verifyUsage (err, verified) ->
+    console.log "Err: #{JSON.stringify err}, Verified: #{verified}"
+  
   element = document.getElementById 'playingField'
   verifyCerificate element, (err, verified) ->
     # example cb
@@ -138,5 +173,6 @@ window.onload = ->
       $('#fileDetails').text "Ceritifcate verified!"
     else
       $('#fileDetails').text "Bad certificate!"
+  
     
     

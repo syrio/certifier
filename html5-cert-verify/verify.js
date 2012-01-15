@@ -1,5 +1,5 @@
 (function() {
-  var DropHandler, FileHandler, StateManager;
+  var DropHandler, FileHandler, LicenseManager;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   FileHandler = (function() {
     FileHandler.prototype.raw_ca = "-----BEGIN CERTIFICATE-----    MIICtDCCAh2gAwIBAgIBATANBgkqhkiG9w0BAQUFADB7MRQwEgYDVQQDEwtDZXJ0    aWZpZXJDQTELMAkGA1UEBhMCVVMxETAPBgNVBAgTCFZpcmdpbmlhMRMwEQYDVQQH    EwpXYXNoaW5ndG9uMRYwFAYDVQQKEw1DZXJ0aWZpZXJUZXN0MRYwFAYDVQQLEw1D    ZXJ0aWZpZXJUZXN0MB4XDTEyMDEwODEyMTAxN1oXDTEyMDIwODEyMTAxN1owezEU    MBIGA1UEAxMLQ2VydGlmaWVyQ0ExCzAJBgNVBAYTAlVTMREwDwYDVQQIEwhWaXJn    aW5pYTETMBEGA1UEBxMKV2FzaGluZ3RvbjEWMBQGA1UEChMNQ2VydGlmaWVyVGVz    dDEWMBQGA1UECxMNQ2VydGlmaWVyVGVzdDCBnzANBgkqhkiG9w0BAQEFAAOBjQAw    gYkCgYEAy5trNHpKx0h+WYzmDro2OzZdkMEc2+iXOcaDDU/ancg5AMePD9+1Oklo    jt4Mx5md5rqybLpv3S+G6D97qdVdWWWboEFvzsPCuCAQV5cq0aaGkR5lLkpZlklg    gT+bVR1L2FCMIUkUPjAydiuk0u/C9V9s9sH31veByPqJoJ5AnfECAwEAAaNIMEYw    DAYDVR0TBAUwAwEB/zALBgNVHQ8EBAMCAvQwKQYDVR0RBCIwIIYeaHR0cDovL2Nh    LkNlcnRpZmllci5vcmcvdWJlcmNhMA0GCSqGSIb3DQEBBQUAA4GBAAPm83M+FDbF    LuVjDbHqM+7/Q2hKw/9ILY/Cw5fi+vdcmRMCEh9vO5uyxxhkrC22xtUBuzUViUNl    2we6qZIeYHXVwkTrWuN3aT0MK2j6R/IcVetvAPyi9MJvdFkHyig8pZElV2yN5isv    26o6ZMZ3KfuMPJVcpikLINelJNSB1Led    -----END CERTIFICATE-----";
@@ -30,6 +30,12 @@
     FileHandler.prototype.verifyCertificate = function(cert, cb) {
       try {
         return forge.pki.verifyCertificateChain(this.store, [cert], function(verified, depth, chain) {
+          if (verified) {
+            localStorage.first_use_date = new Date();
+            localStorage.last_use_date = new Date();
+            localStorage.not_after = cert.validity.notAfter;
+            localStorage.not_before = cert.validity.notBefore;
+          }
           cb(0, verified);
           return true;
         });
@@ -64,45 +70,78 @@
     };
     return DropHandler;
   })();
-  StateManager = (function() {
-    function StateManager() {
-      this.browserSupportsPrerequisites();
-      this.initializeStoredState();
+  LicenseManager = (function() {
+    function LicenseManager(cb) {
+      try {
+        if (!this.stateExists()) {
+          return cb({
+            error: 'Cert.State.NotExisting',
+            message: 'Certificate hasnt been aprooved, cannot check license'
+          });
+        }
+        if (this.licenseValid()) {
+          this.updateUsage();
+          cb(0, true);
+        } else {
+          console.log("License invalid");
+          cb(0, false);
+        }
+      } catch (ex) {
+        cb(ex);
+      }
     }
-    StateManager.prototype.browserSupportsPrerequisites = function() {
-      if (window.localStorage == null) {
+    LicenseManager.prototype.licenseValid = function() {
+      var now;
+      now = new Date();
+      if (now < new Date(localStorage.last_use_date) || now < new Date(localStorage.first_use_date) || now < new Date(localStorage.not_before)) {
         throw {
-          error: 'Cert.State.NoBrowserSupport',
-          message: 'Browser doesnt support HTML5 localStorage'
+          error: 'Cert.State.DateTempering',
+          message: 'Inconsistency in clocks, user date has been changed to the past'
         };
       }
+      return now < new Date(localStorage.not_after);
     };
-    StateManager.prototype.initializeStoredState = function() {
-      if ((localStorage.first_use_date != null) && !(localStorage.last_use_date != null)) {
+    LicenseManager.prototype.updateUsage = function() {
+      var now;
+      now = new Date();
+      return localStorage.last_use_date = now;
+    };
+    LicenseManager.prototype.stateExists = function() {
+      var another_doesnt, one_does;
+      one_does = (localStorage.first_use_date != null) || (localStorage.last_use_date != null) || (localStorage.not_before != null) || (localStorage.not_after != null);
+      another_doesnt = !(localStorage.first_use_date != null) || !(localStorage.last_use_date != null) || !(localStorage.not_before != null) || !(localStorage.not_after != null);
+      if (one_does && another_doesnt) {
         throw {
           error: 'Cert.State.MalformedState',
           message: 'Malformed state: only part of the stored state exists in storage'
         };
-      } else if (!((localStorage.first_use_date != null) && (localStorage.last_use_date != null))) {
-        localStorage.first_use_date = new Date();
-        return localStorage.last_use_date = new Date();
-      } else if ((localStorage.first_use_date != null) && (localStorage.last_use_date != null)) {
-        return localStorage.last_use_date = new Date();
+      }
+      if (another_doesnt) {
+        return false;
+      } else {
+        return true;
       }
     };
-    return StateManager;
+    return LicenseManager;
   })();
   window.onload = function() {
-    var element, verifyCerificate;
+    var browserSupportsPrerequisites, element, verifyCerificate, verifyUsage;
+    browserSupportsPrerequisites = function() {
+      return window.localStorage != null;
+    };
+    verifyUsage = function(cb) {
+      var license_manager;
+      return license_manager = new LicenseManager(cb);
+    };
     verifyCerificate = function(element, cb) {
-      var state_manager;
-      try {
-        state_manager = new StateManager;
-      } catch (ex) {
-        cb(ex);
-      }
       return new DropHandler(element, cb);
     };
+    if (!browserSupportsPrerequisites()) {
+      $('#error').text("Cannot work on this browser");
+    }
+    verifyUsage(function(err, verified) {
+      return console.log("Err: " + (JSON.stringify(err)) + ", Verified: " + verified);
+    });
     element = document.getElementById('playingField');
     return verifyCerificate(element, function(err, verified) {
       if (err) {
