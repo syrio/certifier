@@ -76,7 +76,7 @@
         if (!this.stateExists()) {
           return cb({
             error: 'Cert.State.NotExisting',
-            message: 'Certificate hasnt been aprooved, cannot check license'
+            message: 'Certificate hasnt been supplied by user, cannot check license'
           });
         }
         if (this.licenseValid()) {

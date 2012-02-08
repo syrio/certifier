@@ -105,7 +105,7 @@ class LicenseManager
     try
      
       unless @stateExists()
-        return cb {error: 'Cert.State.NotExisting', message: 'Certificate hasnt been aprooved, cannot check license'}
+        return cb {error: 'Cert.State.NotExisting', message: 'Certificate hasnt been supplied by user in the past so cannot check license'}
     
       if @licenseValid()
         @updateUsage()
@@ -150,7 +150,9 @@ window.onload = ->
   browserSupportsPrerequisites = ->
     #! Change this to use the Modernizr script (modernizr.com)
     # Check for HTML5 localStorage support
-    window.localStorage?
+    # Check for HTML5 File API support
+    window.localStorage? and winodw.FileReader?
+    
   
   verifyUsage = (cb) ->
     license_manager = new LicenseManager cb
@@ -162,6 +164,7 @@ window.onload = ->
     $('#error').text "Cannot work on this browser"
   
   verifyUsage (err, verified) ->
+    # example cb
     console.log "Err: #{JSON.stringify err}, Verified: #{verified}"
   
   element = document.getElementById 'playingField'
